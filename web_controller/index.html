@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>RampBot Controller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg-deep:#060a18;--bg-main:#0a0e21;--bg-card:#10172d;--bg-inner:#141d35;--border:#1c2b4c;--border-glow:#213054;--cyan:#00e5ff;--green:#76ff03;--orange:#ffab40;--pink:#ff4081;--purple:#e040fb;--red:#ff1744;--text:#fff;--text-dim:rgba(255,255,255,.5);--text-dimmer:rgba(255,255,255,.3);--radius:16px;--radius-sm:10px;--radius-xs:6px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:linear-gradient(135deg,#0d1530,#152044);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,229,255,.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(118,255,3,.04) 0%,transparent 60%);pointer-events:none}
+.logo{display:flex;align-items:center;gap:10px;z-index:1}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--cyan),var(--green));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 20px rgba(0,229,255,.25);animation:lp 3s ease-in-out infinite}
+@keyframes lp{0%,100%{box-shadow:0 0 20px rgba(0,229,255,.25)}50%{box-shadow:0 0 30px rgba(0,229,255,.45)}}
+.logo h1{font-size:18px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,var(--cyan),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo .sub{font-size:10px;font-weight:600;color:var(--text-dim);letter-spacing:1px}
+.header-right{display:flex;align-items:center;gap:12px;z-index:1}
+.conn-badge{font-size:10px;padding:5px 12px;border-radius:20px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all .3s}
+.conn-badge.disconnected{background:rgba(255,23,68,.12);color:var(--red);border:1px solid rgba(255,23,68,.3)}
+.conn-badge.connected{background:rgba(118,255,3,.12);color:var(--green);border:1px solid rgba(118,255,3,.3)}
+.conn-badge .dot{width:6px;height:6px;border-radius:50%}
+.conn-badge.disconnected .dot{background:var(--red)}
+.conn-badge.connected .dot{background:var(--green);animation:bk 1.5s infinite}
+@keyframes bk{0%,100%{opacity:1}50%{opacity:.3}}
+.connect-btn{font-size:10px;padding:6px 14px;border-radius:8px;font-weight:800;letter-spacing:.5px;cursor:pointer;border:none;background:linear-gradient(135deg,var(--cyan),#0091ea);color:var(--bg-deep);transition:all .2s;box-shadow:0 0 15px rgba(0,229,255,.2)}
+.connect-btn:hover{transform:translateY(-1px);box-shadow:0 0 25px rgba(0,229,255,.4)}
+.connect-btn:active{transform:scale(.97)}
+.cmd-badge{font-size:10px;font-family:'JetBrains Mono',monospace;padding:4px 10px;border-radius:var(--radius-xs);background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);color:var(--cyan);font-weight:700}
+.main{flex:1;display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:12px;padding:12px;overflow:hidden;min-height:0}
+.panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;overflow:hidden;position:relative}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.3),transparent)}
+.panel-title{font-size:10px;font-weight:800;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px}
+.dpad{position:relative;width:170px;height:170px}
+.dpad-btn{position:absolute;width:46px;height:46px;border-radius:var(--radius-sm);border:1px solid rgba(0,229,255,.2);background:rgba(0,229,255,.06);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:20px;color:var(--cyan);user-select:none}
+.dpad-btn:hover{background:rgba(0,229,255,.15);border-color:rgba(0,229,255,.4)}
+.dpad-btn:active,.dpad-btn.active{background:rgba(0,229,255,.35);border-color:var(--cyan);box-shadow:0 0 20px rgba(0,229,255,.4),inset 0 0 10px rgba(0,229,255,.1);transform:scale(1.08)}
+.dpad-btn.stop{background:rgba(255,64,129,.08);border-color:rgba(255,64,129,.25);color:var(--pink);width:46px;height:46px;border-radius:12px;left:50%;top:50%;transform:translate(-50%,-50%)}
+.dpad-btn.stop:active,.dpad-btn.stop.active{background:rgba(255,64,129,.4);border-color:var(--pink);box-shadow:0 0 20px rgba(255,64,129,.4);transform:translate(-50%,-50%) scale(1.08)}
+.dpad-btn.diag{width:38px;height:38px;font-size:16px;border-radius:8px;opacity:.8}
+.dpad-btn.diag:hover{opacity:1}
+.speed-section{width:100%;padding:0 8px}
+.speed-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.speed-label span{font-size:9px;font-weight:700;color:var(--text-dim);letter-spacing:1px}
+.speed-label .val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:900;color:var(--cyan)}
+input[type=range]{width:100%;height:6px;-webkit-appearance:none;appearance:none;background:var(--bg-inner);border-radius:3px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;cursor:pointer;box-shadow:0 0 10px;border:2px solid rgba(255,255,255,.2);transition:all .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+.speed-section input::-webkit-slider-thumb{background:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.5)}
+.servo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.servo-card{background:var(--bg-inner);border:1px solid var(--border-glow);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;transition:all .2s}
+.servo-card:hover{border-color:rgba(255,255,255,.15)}
+.servo-card .name{font-size:9px;font-weight:800;letter-spacing:1px;margin-bottom:2px}
+.servo-card .angle{font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace;margin-bottom:6px}
+.servo-card .unit{font-size:12px;font-weight:600;opacity:.6}
+.s0 .name,.s0 .angle{color:var(--cyan)}.s0 input::-webkit-slider-thumb{background:var(--cyan);box-shadow:0 0 8px rgba(0,229,255,.5)}
+.s1 .name,.s1 .angle{color:var(--green)}.s1 input::-webkit-slider-thumb{background:var(--green);box-shadow:0 0 8px rgba(118,255,3,.5)}
+.s2 .name,.s2 .angle{color:var(--orange)}.s2 input::-webkit-slider-thumb{background:var(--orange);box-shadow:0 0 8px rgba(255,171,64,.5)}
+.s3 .name,.s3 .angle{color:var(--pink)}.s3 input::-webkit-slider-thumb{background:var(--pink);box-shadow:0 0 8px rgba(255,64,129,.5)}
+.action-row{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;justify-content:center}
+.action-btn{padding:8px 16px;border-radius:8px;font-size:11px;font-weight:800;letter-spacing:.5px;cursor:pointer;border:1px solid;transition:all .2s;user-select:none;display:flex;align-items:center;gap:6px}
+.action-btn:active{transform:scale(.95)}
+.action-btn.open{background:rgba(118,255,3,.08);border-color:rgba(118,255,3,.25);color:var(--green)}
+.action-btn.open:hover{background:rgba(118,255,3,.18)}
+.action-btn.close{background:rgba(255,64,129,.08);border-color:rgba(255,64,129,.25);color:var(--pink)}
+.action-btn.close:hover{background:rgba(255,64,129,.18)}
+.home-btn{padding:8px 20px;border-radius:10px;font-size:11px;font-weight:800;letter-spacing:1px;cursor:pointer;border:none;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;box-shadow:0 0 15px rgba(255,64,129,.25);transition:all .2s;display:flex;align-items:center;gap:6px;margin-top:4px}
+.home-btn:hover{box-shadow:0 0 25px rgba(255,64,129,.4);transform:translateY(-1px)}
+.home-btn:active{transform:scale(.95)}
+.status-grid{width:100%}
+.status-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:8px;background:var(--bg-inner);border:1px solid var(--border-glow);margin-bottom:6px;transition:all .2s}
+.status-row .label{font-size:10px;font-weight:700}
+.status-row .val{font-size:14px;font-weight:900;font-family:'JetBrains Mono',monospace}
+.info-block{background:var(--bg-inner);border:1px solid var(--border-glow);border-radius:var(--radius-sm);padding:10px;width:100%;text-align:center;margin-top:6px}
+.info-block .title{font-size:9px;font-weight:700;color:var(--text-dimmer);letter-spacing:1.5px;margin-bottom:6px}
+.info-row{font-size:10px;font-weight:600;margin:3px 0;display:flex;justify-content:space-between}
+.info-row .k{color:var(--text-dim)}.info-row .v{font-family:'JetBrains Mono',monospace;font-weight:700}
+.log-panel{background:var(--bg-inner);border:1px solid var(--border-glow);border-radius:var(--radius-sm);padding:8px 10px;width:100%;max-height:100px;overflow-y:auto;margin-top:6px}
+.log-panel .title{font-size:9px;font-weight:700;color:var(--text-dimmer);letter-spacing:1px;margin-bottom:4px}
+.log-entry{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--green);padding:1px 0;opacity:.8}
+.log-entry .time{color:var(--text-dimmer);margin-right:6px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);padding:10px 24px;border-radius:12px;background:rgba(10,14,33,.95);border:1px solid var(--border);backdrop-filter:blur(20px);font-size:12px;font-weight:700;color:var(--cyan);box-shadow:0 4px 30px rgba(0,0,0,.5);transition:transform .3s;z-index:100;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:200}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:28px;width:340px;box-shadow:0 0 60px rgba(0,229,255,.1)}
+.modal h2{font-size:16px;font-weight:800;color:var(--cyan);margin-bottom:16px;text-align:center}
+.modal label{font-size:11px;font-weight:700;color:var(--text-dim);display:block;margin-bottom:6px}
+.modal input[type=text]{width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-inner);border:1px solid var(--border-glow);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;outline:none;transition:border-color .2s}
+.modal input[type=text]:focus{border-color:var(--cyan)}
+.modal .hint{font-size:10px;color:var(--text-dimmer);margin-top:6px;line-height:1.5}
+.modal-btns{display:flex;gap:10px;margin-top:18px}
+.modal-btns button{flex:1;padding:10px;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;border:none;transition:all .2s}
+.modal-btns .cancel{background:var(--bg-inner);color:var(--text-dim)}
+.modal-btns .cancel:hover{background:#1a2544}
+.modal-btns .go{background:linear-gradient(135deg,var(--cyan),#0091ea);color:var(--bg-deep);box-shadow:0 0 15px rgba(0,229,255,.2)}
+.modal-btns .go:hover{box-shadow:0 0 25px rgba(0,229,255,.4)}
+@media(max-width:900px){.main{grid-template-columns:1fr 1fr}.panel:last-child{grid-column:span 2}}
+@media(max-width:600px){.main{grid-template-columns:1fr}.panel:last-child{grid-column:span 1}.header{padding:8px 12px;flex-wrap:wrap;gap:6px}.logo h1{font-size:14px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo"><div class="logo-icon">&#x1F916;</div><div><h1>RAMPBOT</h1><div class="sub">CONTROLLER v2.0</div></div></div>
+  <div class="header-right">
+    <div class="conn-badge disconnected" id="connBadge"><span class="dot"></span><span id="connText">Disconnected</span></div>
+    <button class="connect-btn" id="connectBtn">&#x26A1; CONNECT</button>
+    <span class="cmd-badge" id="cmdBadge">CMD: --</span>
+  </div>
+</div>
+<div class="main">
+  <div class="panel">
+    <div class="panel-title">&#x1F3AE; Drive Movement</div>
+    <div class="dpad" id="dpad">
+      <div class="dpad-btn" style="top:0;left:62px" data-cmd="F">&#x25B2;</div>
+      <div class="dpad-btn" style="bottom:0;left:62px" data-cmd="B">&#x25BC;</div>
+      <div class="dpad-btn" style="left:0;top:62px" data-cmd="L">&#x25C0;</div>
+      <div class="dpad-btn" style="right:0;top:62px" data-cmd="R">&#x25B6;</div>
+      <div class="dpad-btn diag" style="top:10px;left:10px" data-cmd="G">&#x2196;</div>
+      <div class="dpad-btn diag" style="top:10px;right:10px" data-cmd="I">&#x2197;</div>
+      <div class="dpad-btn diag" style="bottom:10px;left:10px" data-cmd="H">&#x2199;</div>
+      <div class="dpad-btn diag" style="bottom:10px;right:10px" data-cmd="J">&#x2198;</div>
+      <div class="dpad-btn stop" data-cmd="S">&#x2B1B;</div>
+    </div>
+    <div class="speed-section">
+      <div class="speed-label"><span>SPEED</span><span class="val" id="speedVal">10</span></div>
+      <input type="range" min="0" max="10" value="10" id="speedSlider">
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">&#x1F9BE; Arm Servos</div>
+    <div class="servo-grid">
+      <div class="servo-card s0"><div class="name">BASE (a)</div><div class="angle" id="sv0">90<span class="unit">&deg;</span></div><input type="range" min="0" max="180" value="90" data-servo="0"></div>
+      <div class="servo-card s1"><div class="name">SHOULDER (b)</div><div class="angle" id="sv1">90<span class="unit">&deg;</span></div><input type="range" min="0" max="180" value="90" data-servo="1"></div>
+      <div class="servo-card s2"><div class="name">ELBOW (c)</div><div class="angle" id="sv2">90<span class="unit">&deg;</span></div><input type="range" min="0" max="180" value="90" data-servo="2"></div>
+      <div class="servo-card s3"><div class="name">GRIPPER (d)</div><div class="angle" id="sv3">90<span class="unit">&deg;</span></div><input type="range" min="0" max="180" value="90" data-servo="3"></div>
+    </div>
+    <div class="action-row">
+      <div class="action-btn open" id="gripOpen">&#x1F590; OPEN</div>
+      <div class="action-btn close" id="gripClose">&#x270A; CLOSE</div>
+    </div>
+    <button class="home-btn" id="homeBtn">&#x1F3E0; HOME (90&deg;)</button>
+  </div>
+  <div class="panel">
+    <div class="panel-title">&#x1F4CA; Live Status</div>
+    <div class="status-grid">
+      <div class="status-row"><span class="label" style="color:var(--cyan)">Base</span><span class="val" style="color:var(--cyan)" id="st0">90&deg;</span></div>
+      <div class="status-row"><span class="label" style="color:var(--green)">Shoulder</span><span class="val" style="color:var(--green)" id="st1">90&deg;</span></div>
+      <div class="status-row"><span class="label" style="color:var(--orange)">Elbow</span><span class="val" style="color:var(--orange)" id="st2">90&deg;</span></div>
+      <div class="status-row"><span class="label" style="color:var(--pink)">Gripper</span><span class="val" style="color:var(--pink)" id="st3">90&deg;</span></div>
+    </div>
+    <div class="info-block">
+      <div class="title">&#x2699; FIRMWARE CONFIG</div>
+      <div class="info-row"><span class="k">PWM Frequency</span><span class="v" style="color:var(--orange)">500 Hz</span></div>
+      <div class="info-row"><span class="k">Servo Step</span><span class="v" style="color:var(--cyan)">10&deg;/8ms</span></div>
+      <div class="info-row"><span class="k">Min PWM</span><span class="v" style="color:var(--green)">120</span></div>
+      <div class="info-row"><span class="k">Torque Mode</span><span class="v" style="color:var(--green)">HIGH &#x26A1;</span></div>
+    </div>
+    <div class="log-panel" id="logPanel">
+      <div class="title">&#x1F4E1; COMMAND LOG</div>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>&#x26A1; Connect to RampBot</h2>
+    <label>ESP32 IP Address</label>
+    <input type="text" id="ipInput" value="192.168.4.1" placeholder="e.g. 192.168.4.1">
+    <div class="hint">1. Connect your device to WiFi: <b>RampBot-WiFi</b><br>2. Password: <b>rampbot123</b><br>3. Default IP: <b>192.168.4.1</b></div>
+    <div class="modal-btns">
+      <button class="cancel" id="modalCancel">Cancel</button>
+      <button class="go" id="modalGo">Connect</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let espIP='',connected=false,angles=[90,90,90,90];
+const SN=['Base','Shoulder','Elbow','Gripper'];
+const CL={F:'Forward',B:'Backward',L:'Spin Left',R:'Spin Right',G:'Fwd-Left',I:'Fwd-Right',H:'Back-Left',J:'Back-Right',S:'Stop',P:'Home'};
+const connBadge=document.getElementById('connBadge'),connText=document.getElementById('connText'),cmdBadge=document.getElementById('cmdBadge'),speedSlider=document.getElementById('speedSlider'),speedVal=document.getElementById('speedVal'),toast=document.getElementById('toast'),modal=document.getElementById('modal'),ipInput=document.getElementById('ipInput'),logEntries=document.getElementById('logEntries');
+let toastTimer;
+function showToast(m){toast.textContent=m;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),2000)}
+document.getElementById('connectBtn').addEventListener('click',()=>{modal.classList.add('show');ipInput.focus()});
+document.getElementById('modalCancel').addEventListener('click',()=>modal.classList.remove('show'));
+document.getElementById('modalGo').addEventListener('click',doConnect);
+ipInput.addEventListener('keydown',e=>{if(e.key==='Enter')doConnect()});
+function doConnect(){espIP=ipInput.value.trim();if(!espIP)return;modal.classList.remove('show');fetch('http://'+espIP+'/cmd?c=S',{signal:AbortSignal.timeout(3000)}).then(r=>{if(r.ok){connected=true;connBadge.className='conn-badge connected';connText.textContent=espIP;showToast('Connected to RampBot!');addLog('Connected to '+espIP)}}).catch(()=>{connected=false;connBadge.className='conn-badge disconnected';connText.textContent='Failed';showToast('Cannot reach '+espIP+' - check WiFi');addLog('Connection failed: '+espIP)})}
+function send(path,label){cmdBadge.textContent='CMD: '+(label||path);addLog('> '+(label||path));if(!espIP)return;fetch('http://'+espIP+path,{signal:AbortSignal.timeout(1000)}).catch(()=>{})}
+function addLog(msg){const now=new Date(),ts=now.toLocaleTimeString('en-GB',{hour12:false}),el=document.createElement('div');el.className='log-entry';el.innerHTML='<span class="time">'+ts+'</span>'+msg;logEntries.prepend(el);while(logEntries.children.length>20)logEntries.lastChild.remove()}
+let activeCmd=null,repeatTimer=null;
+document.querySelectorAll('.dpad-btn').forEach(btn=>{const cmd=btn.dataset.cmd;function start(e){e.preventDefault();btn.classList.add('active');activeCmd=cmd;send('/cmd?c='+cmd,CL[cmd]||cmd);clearInterval(repeatTimer);if(cmd!=='S')repeatTimer=setInterval(()=>send('/cmd?c='+cmd,CL[cmd]||cmd),120)}function stop(e){e.preventDefault();btn.classList.remove('active');clearInterval(repeatTimer);repeatTimer=null;if(cmd!=='S')send('/cmd?c=S','Stop');activeCmd=null}btn.addEventListener('mousedown',start);btn.addEventListener('mouseup',stop);btn.addEventListener('mouseleave',e=>{if(activeCmd===cmd)stop(e)});btn.addEventListener('touchstart',start,{passive:false});btn.addEventListener('touchend',stop,{passive:false});btn.addEventListener('touchcancel',stop,{passive:false})});
+speedSlider.addEventListener('input',()=>{const v=parseInt(speedSlider.value);speedVal.textContent=v;send('/cmd?c='+(v>=10?'q':v),'Speed '+v)});
+document.querySelectorAll('[data-servo]').forEach(sl=>{const i=parseInt(sl.dataset.servo);sl.addEventListener('input',()=>{const v=parseInt(sl.value);angles[i]=v;document.getElementById('sv'+i).innerHTML=v+'<span class="unit">&deg;</span>';document.getElementById('st'+i).textContent=v+'\u00B0';send('/servo?i='+i+'&a='+v,SN[i]+' > '+v+'\u00B0')})});
+document.getElementById('gripOpen').addEventListener('click',()=>{setUI(3,30);send('/servo?i=3&a=30','Gripper OPEN')});
+document.getElementById('gripClose').addEventListener('click',()=>{setUI(3,150);send('/servo?i=3&a=150','Gripper CLOSE')});
+document.getElementById('homeBtn').addEventListener('click',()=>{send('/cmd?c=P','HOME');for(let i=0;i<4;i++)setUI(i,90)});
+function setUI(i,v){angles[i]=v;document.getElementById('sv'+i).innerHTML=v+'<span class="unit">&deg;</span>';document.getElementById('st'+i).textContent=v+'\u00B0';document.querySelector('[data-servo="'+i+'"]').value=v}
+const KM={ArrowUp:'F',ArrowDown:'B',ArrowLeft:'L',ArrowRight:'R',w:'F',s:'B',a:'L',d:'R',' ':'S'};
+const kd=new Set();
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const c=KM[e.key];if(c&&!kd.has(e.key)){kd.add(e.key);send('/cmd?c='+c,CL[c]||c);const b=document.querySelector('.dpad-btn[data-cmd="'+c+'"]');if(b)b.classList.add('active')}});
+document.addEventListener('keyup',e=>{const c=KM[e.key];if(c&&kd.has(e.key)){kd.delete(e.key);if(c!=='S')send('/cmd?c=S','Stop');const b=document.querySelector('.dpad-btn[data-cmd="'+c+'"]');if(b)b.classList.remove('active')}});
+addLog('RampBot Controller loaded');
+addLog('Click CONNECT to link to ESP32');
+</script>
+</body>
+</html>
