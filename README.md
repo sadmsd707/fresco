@@ -3,7 +3,7 @@
 [![Platform: ESP32](https://img.shields.io/badge/Platform-ESP32-blue.svg)](https://www.espressif.com/)
 [![Flutter](https://img.shields.io/badge/Flutter-v3.0+-02569B?logo=flutter)](https://flutter.dev/)
 [![Language: C++ / Dart / HTML5](https://img.shields.io/badge/Language-C%2B%2B%20%7C%20Dart%20%7C%20HTML5-success)](https://github.com/sadmsd707/fresco)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Shivraj%20Deshmukh-00E5FF.svg)](LICENSE)
 
 **Fresco (RampBot)** is an end-to-end robotics control platform combining high-torque **ESP32 firmware**, an immersive **Flutter mobile application** (Bluetooth SPP), and a responsive **HTML5/JS Web Controller** (WiFi SoftAP). It is engineered for 4WD robotic rovers equipped with a 4-degree-of-freedom (4-DOF) robotic arm and gripper.
 
@@ -241,4 +241,6 @@ fresco/
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+Copyright © 2025–2026 **Shivraj Deshmukh**. All rights reserved.
+
+This software and its documentation are proprietary. See the [LICENSE](LICENSE) file for more information.
